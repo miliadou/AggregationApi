@@ -62,7 +62,7 @@ namespace AggregationApi.Services
                 var token = await GetAccessTokenAsync();
                 // Example: Top tracks globally
                 var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.spotify.com/v1/browse/new-releases?limit={limit}");
-                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
