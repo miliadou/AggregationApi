@@ -3,7 +3,6 @@ using AggregationApi.Models;
 using AggregationApi.Models.NewsDTO;
 using AggregationApi.Models.SpotifyDTO;
 using AggregationApi.Models.WeatherDTO;
-using Microsoft.AspNetCore.Mvc.Diagnostics;
 
 namespace AggregationApi.Services
 {
@@ -24,13 +23,12 @@ namespace AggregationApi.Services
 
         public async Task<AggregatedResponse> GetAggregatedData(AggregatorRequest request)
         {
-            WeatherData weather = null;
+            WeatherData? weather = null;
             List<Article> news = new List<Article>();
             List<SpotifyTrackDTO> spotify = new List<SpotifyTrackDTO>();
 
             try
             {
-
                 var weatherTask = SafeExecuteAsync(() => _weatherService.GetWeatherAsync(request.City));
                 var newsTask = SafeExecuteAsync(() => _newsService.GetNewsAsync(request.CountryCode, request.NewsSortBy));
                 var spotifyTask = SafeExecuteAsync(() => _spotifyService.GetNewReleasesAsync(request.SpotifyLimit));

@@ -1,8 +1,9 @@
 ﻿using AggregationApi.Interfaces;
+using AggregationApi.Interfaces.Models;
 using AggregationApi.Models.SpotifyDTO;
+using Microsoft.Extensions.Configuration;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Web;
 
 namespace AggregationApi.Services
 {
@@ -14,6 +15,7 @@ namespace AggregationApi.Services
         private string _accessToken;
         private DateTime _tokenExpiry;
         private readonly ILogger<SpotifyService> _logger;
+        private ExternalApisOptions? _externalApisOptions;
 
         public SpotifyService(HttpClient httpClient, IConfiguration configuration, ILogger<SpotifyService> logger)
         {
@@ -21,6 +23,7 @@ namespace AggregationApi.Services
             _clientSecret = configuration["ClientSecret"];
             _httpClient = new HttpClient();
             _logger = logger;
+            _externalApisOptions = configuration.GetSection(ExternalApisOptions.Name).Get<ExternalApisOptions>();
         }
 
         // Get or refresh access token
@@ -31,8 +34,6 @@ namespace AggregationApi.Services
                 return _accessToken;
             }
 
-            var tokenUrl = "https://accounts.spotify.com/api/token";
-
             var parameters = new Dictionary<string, string>
         {
             { "grant_type", "client_credentials" },
@@ -41,7 +42,7 @@ namespace AggregationApi.Services
         };
 
             var content = new FormUrlEncodedContent(parameters);
-            var response = await _httpClient.PostAsync(tokenUrl, content);
+            var response = await _httpClient.PostAsync(_externalApisOptions.SpotifyTokenUrl, content);
             response.EnsureSuccessStatusCode();
 
             var jsonString = await response.Content.ReadAsStringAsync();
@@ -61,7 +62,8 @@ namespace AggregationApi.Services
             {
                 var token = await GetAccessTokenAsync();
                 // Example: Top tracks globally
-                var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.spotify.com/v1/browse/new-releases?limit={limit}");
+                UriBuilder urlBuilder = new UriBuilder(_externalApisOptions.SpotifyApiUrl) { Query = string.Join("=","limit", limit) };
+                var request = new HttpRequestMessage(HttpMethod.Get, urlBuilder.ToString());
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _httpClient.SendAsync(request);

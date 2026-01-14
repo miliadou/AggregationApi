@@ -1,8 +1,6 @@
 ﻿using AggregationApi.Interfaces;
-using AggregationApi.Models.NewsDTO;
+using AggregationApi.Interfaces.Models;
 using AggregationApi.Models.WeatherDTO;
-using System.Net.Http.Headers;
-using System.Text;
 
 namespace AggregationApi.Services
 {
@@ -11,20 +9,23 @@ namespace AggregationApi.Services
         private readonly HttpClient _httpClient;
         private string _apiKey;      
         private readonly ILogger<WeatherService> _logger;
+        private ExternalApisOptions? _externalApisOptions;
 
         public WeatherService(HttpClient httpClient, IConfiguration configuration, ILogger<WeatherService> logger)
         {
             _httpClient = httpClient;
             _apiKey = configuration["WeatherApiKey"];         
             _logger = logger;
+            _externalApisOptions = configuration.GetSection(ExternalApisOptions.Name).Get<ExternalApisOptions>();
         }
 
         public async Task<WeatherData> GetWeatherAsync(string city)
         {
             try
             {
-                var url = $"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={_apiKey}&units=metric";
-                var response = await _httpClient.GetFromJsonAsync<OpenWeatherResponse>(url);
+                string queryToAppend = String.Concat("q=",city,"&appid=",_apiKey,"&units=","metric");
+                var urlBuilder = new UriBuilder(_externalApisOptions.WeatherApiUrl) { Query = queryToAppend };
+                var response = await _httpClient.GetFromJsonAsync<OpenWeatherResponse>(urlBuilder.ToString());
 
                 return new WeatherData
                 {

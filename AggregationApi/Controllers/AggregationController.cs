@@ -7,8 +7,7 @@ namespace AggregationApi.Controllers
     [ApiController]
     [Route("[controller]")]
     public class AggregationController : ControllerBase
-    {
-      
+    {      
         private readonly ILogger<AggregationController> _logger;
 
         private readonly AggregationService _aggregationService;
